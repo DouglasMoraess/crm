@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planilha CRM Corretor</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--bg2:#181c27;--bg3:#1e2335;--bg4:#252a3d;
+  --accent:#4f8ef7;--accent2:#7c5cfc;--green:#22c77a;--amber:#f59e0b;--red:#ef4444;--pink:#ec4899;--teal:#14b8a6;
+  --text:#e8ecf4;--text2:#8891aa;--text3:#555e7a;--border:#2a3050;--radius:12px;--radius-sm:8px;
+}
+html,body{min-height:100%;font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
+body{display:flex;justify-content:center}
+.app{display:flex;flex-direction:column;min-height:100vh;width:100%;max-width:480px;background:var(--bg)}
+
+.topbar{background:var(--bg2);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:200}
+.topbar-logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.topbar-info{flex:1}
+.topbar-title{font-size:13px;font-weight:600}
+.topbar-sub{font-size:10px;color:var(--text2);font-family:'JetBrains Mono',monospace}
+.topbar-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s}
+.topbar-btn:hover{background:var(--bg3);color:var(--text)}
+
+.global-search{background:var(--bg2);padding:10px 14px;border-bottom:1px solid var(--border);display:none}
+.global-search.open{display:block}
+.search-wrap{position:relative}
+.search-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px 9px 36px;color:var(--text);font-size:13px;font-family:'Sora',sans-serif;outline:none;transition:border-color .2s}
+.search-input::placeholder{color:var(--text3)}
+.search-input:focus{border-color:var(--accent)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:16px;pointer-events:none}
+
+.nav{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;padding:0 4px;position:sticky;top:54px;z-index:199}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{padding:10px 11px;font-size:11px;font-weight:500;color:var(--text2);border:none;background:transparent;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;font-family:'Sora',sans-serif;display:flex;align-items:center;gap:4px}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.nav-btn i{font-size:14px}
+
+.content{flex:1;padding:14px;display:flex;flex-direction:column;gap:12px;padding-bottom:80px}
+.tab{display:none}.tab.active{display:flex;flex-direction:column;gap:12px}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.card-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.card-title-left{display:flex;align-items:center;gap:6px}
+.card-title i{font-size:14px}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--bg3);border-radius:var(--radius-sm);padding:10px;border:1px solid var(--border);text-align:center}
+.kpi-val{font-size:20px;font-weight:600;font-family:'JetBrains Mono',monospace;line-height:1}
+.kpi-label{font-size:10px;color:var(--text2);margin-top:3px}
+.kpi.accent .kpi-val{color:var(--accent)}.kpi.green .kpi-val{color:var(--green)}
+.kpi.amber .kpi-val{color:var(--amber)}.kpi.red .kpi-val{color:var(--red)}
+.kpi.pink .kpi-val{color:var(--pink)}.kpi.teal .kpi-val{color:var(--teal)}
+
+.badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.badge.novo{background:#1a2a4a;color:#4fc3f7}
+.badge.quente{background:#3a1a14;color:#ff6b6b}
+.badge.neg{background:#2d2a14;color:var(--amber)}
+.badge.ganho{background:#142d1e;color:var(--green)}
+.badge.perdido{background:#2d1414;color:var(--red)}
+.badge.ativo{background:#1a3a4a;color:#4fc3f7}
+.badge.pendente{background:#2a1f3a;color:var(--accent2)}
+
+.pills{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.pills::-webkit-scrollbar{display:none}
+.pill{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);white-space:nowrap;font-family:'Sora',sans-serif;transition:all .2s}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.tag{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600}
+.tag.quente{background:#3a1a14;color:#ff6b6b}
+.tag.investidor{background:#1a2a3a;color:var(--accent)}
+.tag.primeira{background:#142d1e;color:var(--green)}
+.tag.financ{background:#2d2a14;color:var(--amber)}
+.tag.permuta{background:#2a1f3a;color:var(--accent2)}
+.tag.urgente{background:#3a1414;color:var(--red)}
+.tag.alto{background:#1a1a3a;color:#c084fc}
+.tag.sem-resp{background:#2a2a2a;color:var(--text2)}
+.tag.terreno{background:#142a1e;color:var(--teal)}
+.tag.casa{background:#1a2d14;color:#86efac}
+
+.lead-item{background:var(--bg3);border-radius:var(--radius-sm);padding:12px;border:1px solid var(--border);transition:border-color .2s;cursor:pointer}
+.lead-item:hover{border-color:var(--accent)}
+.lead-top{display:flex;align-items:flex-start;gap:10px}
+.lead-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.lead-info{flex:1;min-width:0}
+.lead-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lead-detail{font-size:11px;color:var(--text2);margin-top:2px}
+.lead-actions{display:flex;gap:4px;flex-shrink:0}
+.btn-icon{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .2s;text-decoration:none}
+.btn-icon:hover{background:var(--bg4);color:var(--text)}
+.btn-icon.del:hover{background:#2d1414;color:var(--red);border-color:var(--red)}
+.btn-icon.edit:hover{background:#0f2a3a;color:var(--accent);border-color:var(--accent)}
+.btn-icon.wa{background:#142d1e;color:var(--green);border-color:#1e5c3a}
+.btn-icon.wa:hover{background:#1e4a2a}
+
+.followup-alert{background:#2d2a14;border:1px solid #5c4a14;border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.followup-alert i{color:var(--amber);font-size:18px;flex-shrink:0}
+.followup-alert-text{flex:1}
+.followup-alert-title{font-size:12px;font-weight:600;color:var(--amber)}
+.followup-alert-sub{font-size:11px;color:var(--text2);margin-top:1px}
+
+.funil{display:flex;flex-direction:column;gap:5px}
+.funil-row{display:flex;align-items:center;gap:8px;cursor:pointer}
+.funil-label{font-size:11px;color:var(--text2);width:110px;flex-shrink:0}
+.funil-bar-wrap{flex:1;background:var(--bg4);border-radius:4px;height:20px;overflow:hidden}
+.funil-bar{height:100%;border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:7px;font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--bg)}
+
+.emp-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;cursor:pointer;transition:border-color .2s}
+.emp-card:hover{border-color:var(--accent)}
+.emp-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.emp-name{font-size:13px;font-weight:600}
+.emp-tipo{font-size:10px;color:var(--text2);margin-top:2px}
+.emp-stats{display:flex;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.emp-stat{flex:1;text-align:center}
+.emp-stat-val{font-size:16px;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--accent)}
+.emp-stat-label{font-size:10px;color:var(--text2);margin-top:1px}
+
+.match-card{background:var(--bg3);border:1px solid var(--green);border-radius:var(--radius-sm);padding:10px 12px}
+.match-title{font-size:11px;font-weight:600;color:var(--green);display:flex;align-items:center;gap:5px;margin-bottom:8px}
+.match-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+.match-item:last-child{border:none}
+
+.origem-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px}
+.orig-ig{background:#3a1a2a;color:#f472b6}
+.orig-fb{background:#1a2a4a;color:#60a5fa}
+.orig-wa{background:#142d1e;color:#4ade80}
+.orig-ind{background:#2d2a14;color:#fbbf24}
+.orig-site{background:#1a1a3a;color:#a78bfa}
+.orig-portal{background:#1a2a3a;color:#38bdf8}
+.orig-ads{background:#2d1a14;color:#fb923c}
+.orig-olx{background:#2a1a14;color:#f97316}
+.orig-org{background:#142a1a;color:#34d399}
+
+.fab{position:fixed;bottom:24px;right:20px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(79,142,247,.45);z-index:300;transition:transform .2s}
+.fab:hover{transform:scale(1.08)}
+@media(min-width:480px){.fab{right:calc(50% - 220px)}}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:400;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;border-top:1px solid var(--border)}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:transparent;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px}
+
+.form-group{margin-bottom:12px}
+.form-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-size:13px;font-family:'Sora',sans-serif;outline:none;transition:border-color .2s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent)}
+.form-select option{background:var(--bg3)}
+.form-textarea{resize:vertical;min-height:65px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-section{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+
+.tag-picker{display:flex;flex-wrap:wrap;gap:6px}
+.tag-opt{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);transition:all .2s;font-family:'Sora',sans-serif}
+.tag-opt.selected{border-color:var(--accent);color:var(--accent);background:#0f2a4a}
+
+.btn-primary{width:100%;padding:11px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:var(--radius-sm);color:#fff;font-size:14px;font-weight:600;font-family:'Sora',sans-serif;cursor:pointer;margin-top:4px;transition:opacity .2s}
+.btn-primary:hover{opacity:.9}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-danger{width:100%;padding:9px;background:transparent;border:1px solid var(--red);border-radius:var(--radius-sm);color:var(--red);font-size:13px;font-weight:600;font-family:'Sora',sans-serif;cursor:pointer;margin-top:8px;transition:all .2s}
+.btn-danger:hover{background:#2d1414}
+
+.detail-view{display:none;flex-direction:column;gap:12px}
+.detail-view.open{display:flex}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;padding:4px 0}
+.back-btn i{font-size:16px}
+.detail-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.detail-field{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.detail-field:last-child{border:none}
+.detail-field-label{color:var(--text2);flex-shrink:0;margin-right:12px}
+.detail-field-val{text-align:right;font-weight:500}
+
+.msg-template{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.msg-template:hover{border-color:var(--accent)}
+.msg-template-title{font-size:11px;font-weight:600;color:var(--accent);margin-bottom:4px}
+.msg-template-body{font-size:11px;color:var(--text2);line-height:1.5}
+
+/* LOADING */
+.loading-screen{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.loading-logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:28px}
+.loading-title{font-size:16px;font-weight:600}
+.loading-sub{font-size:12px;color:var(--text2)}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* LOGIN */
+.login-screen{position:fixed;inset:0;background:var(--bg);z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px 28px;width:100%;max-width:360px}
+.login-logo{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 16px}
+.login-title{font-size:20px;font-weight:600;text-align:center;margin-bottom:4px}
+.login-sub{font-size:12px;color:var(--text2);text-align:center;margin-bottom:24px}
+.login-error{background:#2d1414;border:1px solid var(--red);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--red);margin-bottom:14px;display:none}
+.login-error.show{display:block}
+
+
+.sync-indicator{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);padding:2px 0}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite}
+.sync-dot.error{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.empty{text-align:center;padding:28px 20px;color:var(--text3);font-size:12px}
+.empty i{font-size:30px;display:block;margin-bottom:8px}
+
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 18px;font-size:12px;font-weight:600;color:var(--text);z-index:500;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+.toast.warn{border-color:var(--amber);color:var(--amber)}
+
+@media(min-width:600px) and (max-width:899px){body{padding:20px}.app{border-radius:16px;min-height:auto;box-shadow:0 0 0 1px var(--border)}}
+@media(min-width:900px){
+  html,body{height:100%;overflow:hidden}
+  body{padding:0;background:var(--bg)}
+  .app{flex-direction:row;max-width:100%;height:100vh}
+  /* hide mobile topbar and nav on desktop */
+  .topbar{display:none}
+  .nav{display:none}
+  .global-search{display:none!important}
+  /* SIDEBAR */
+  .sidebar{width:240px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto;position:sticky;top:0}
+  .sidebar-logo{padding:20px 16px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+  .sidebar-logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+  .sidebar-logo-title{font-size:13px;font-weight:600}
+  .sidebar-logo-sub{font-size:10px;color:var(--text2);font-family:'JetBrains Mono',monospace}
+  .sidebar-nav{display:flex;flex-direction:column;padding:10px 8px;gap:2px;flex:1}
+  .sidebar-nav-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text2);border:none;background:transparent;cursor:pointer;text-align:left;width:100%;font-family:'Sora',sans-serif;transition:all .2s}
+  .sidebar-nav-btn i{font-size:18px;flex-shrink:0}
+  .sidebar-nav-btn:hover{background:var(--bg3);color:var(--text)}
+  .sidebar-nav-btn.active{background:var(--bg3);color:var(--accent);font-weight:600}
+  .sidebar-search{margin:0 8px 8px;position:relative}
+  .sidebar-search input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px 8px 34px;color:var(--text);font-size:12px;font-family:'Sora',sans-serif;outline:none}
+  .sidebar-search input:focus{border-color:var(--accent)}
+  .sidebar-search input::placeholder{color:var(--text3)}
+  .sidebar-search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;pointer-events:none}
+  .sidebar-search-results{position:absolute;bottom:calc(100% + 4px);left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:300px;overflow-y:auto;z-index:50;display:none}
+  .sidebar-search-results.open{display:block}
+  .sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text3)}
+  /* MAIN AREA */
+  .main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+  .desktop-header{background:var(--bg2);padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .desktop-header-title{font-size:16px;font-weight:600}
+  .desktop-header-date{font-size:11px;color:var(--text2);font-family:'JetBrains Mono',monospace}
+  .content{padding:24px;overflow-y:auto;height:calc(100vh - 57px);padding-bottom:24px}
+  .tab{gap:16px}
+  .kpi-grid{grid-template-columns:repeat(6,1fr);gap:12px}
+  .kpi-val{font-size:24px}
+  .kpi-label{font-size:11px}
+  .leads-grid-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .emp-grid-wrap{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .fab{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="position:fixed;inset:0;background:var(--bg);z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+  <div class="login-box">
+    <div class="login-logo">🏠</div>
+    <div class="login-title">CRM Corretor</div>
+    <div class="login-sub">Faça login para continuar</div>
+    <div class="login-error" id="login-error">Usuário ou senha incorretos</div>
+    <div class="form-group"><label class="form-label">Usuário</label><input class="form-input" id="login-user" type="text" placeholder="admin" autocomplete="username"></div>
+    <div class="form-group" style="margin-bottom:20px"><label class="form-label">Senha</label><input class="form-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn-primary" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loading-screen">
+  <div class="loading-logo">🏠</div>
+  <div class="loading-title">CRM Corretor</div>
+  <div class="spinner"></div>
+  <div class="loading-sub" id="loading-msg">Conectando ao banco de dados...</div>
+</div>
+
+<div class="app" id="main-app" style="display:none">
+
+  <!-- DESKTOP SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🏠</div>
+      <div>
+        <div class="sidebar-logo-title">CRM Corretor</div>
+        <div class="sidebar-logo-sub" id="sidebar-date"></div>
+      </div>
+    </div>
+    <div style="padding:10px 8px 4px">
+      <div class="sidebar-search">
+        <i class="ti ti-search sidebar-search-icon"></i>
+        <input type="text" placeholder="Buscar lead..." oninput="globalSearch(this.value);document.getElementById('sidebar-results').classList.toggle('open',this.value.length>1)">
+        <div class="sidebar-search-results" id="sidebar-results"></div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <button class="sidebar-nav-btn active" onclick="showTab('dashboard',this)"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+      <button class="sidebar-nav-btn" onclick="showTab('leads',this)"><i class="ti ti-users"></i> Leads</button>
+      <button class="sidebar-nav-btn" onclick="showTab('empreend',this)"><i class="ti ti-building-estate"></i> Produtos</button>
+      <button class="sidebar-nav-btn" onclick="showTab('followup',this)"><i class="ti ti-bell"></i> Follow-up</button>
+      <button class="sidebar-nav-btn" onclick="showTab('msgs',this)"><i class="ti ti-message-2"></i> Mensagens</button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sync-dot" id="sync-dot2"></div>
+      <span id="sync-text2">online</span>
+      <span style="margin-left:auto;cursor:pointer;color:var(--accent)" onclick="openAddModal()"><i class="ti ti-plus" style="font-size:16px"></i> Novo</span>
+    </div>
+  </div>
+
+  <!-- MAIN AREA (desktop wrapper) -->
+  <div class="main-area" id="main-area">
+  <div class="desktop-header">
+    <div class="desktop-header-title" id="desktop-tab-title">Dashboard</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="desktop-header-date" id="desktop-date"></div>
+      <div class="sync-indicator"><div class="sync-dot" id="sync-dot"></div><span id="sync-text">online</span></div>
+      <button onclick="toggleSearch()" style="background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);padding:6px 12px;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;display:flex;align-items:center;gap:6px"><i class="ti ti-search" style="font-size:14px"></i> Buscar</button>
+      <button onclick="openAddModal()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#fff;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;display:flex;align-items:center;gap:5px"><i class="ti ti-plus" style="font-size:14px"></i> Novo</button>
+    </div>
+  </div>
+
+  <div class="topbar">
+    <div class="topbar-logo">🏠</div>
+    <div class="topbar-info">
+      <div class="topbar-title">CRM Corretor</div>
+      <div class="topbar-sub" id="today-date"></div>
+    </div>
+    <div id="sync-status" class="sync-indicator" style="margin-right:4px">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-text">online</span>
+    </div>
+    <button class="topbar-btn" onclick="toggleSearch()"><i class="ti ti-search"></i></button>
+  </div>
+
+  <div class="global-search" id="global-search">
+    <div class="search-wrap">
+      <i class="ti ti-search search-icon"></i>
+      <input class="search-input" id="gsearch" type="text" placeholder="Buscar por nome, telefone, produto..." oninput="globalSearch(this.value)">
+    </div>
+    <div id="search-results" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showTab('dashboard',this)"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+    <button class="nav-btn" onclick="showTab('leads',this)"><i class="ti ti-users"></i> Leads</button>
+    <button class="nav-btn" onclick="showTab('empreend',this)"><i class="ti ti-building-estate"></i> Produtos</button>
+    <button class="nav-btn" onclick="showTab('followup',this)"><i class="ti ti-bell"></i> Follow-up</button>
+    <button class="nav-btn" onclick="showTab('msgs',this)"><i class="ti ti-message-2"></i> Mensagens</button>
+  </nav>
+
+  <div class="content">
+
+    <div id="tab-dashboard" class="tab active">
+      <div class="kpi-grid" id="kpi-grid"></div>
+      <div class="card"><div class="card-title"><div class="card-title-left"><i class="ti ti-filter"></i> Funil de atendimento</div></div><div class="funil" id="funil"></div></div>
+      <div id="followup-alerts"></div>
+      <div class="card"><div class="card-title"><div class="card-title-left"><i class="ti ti-clock"></i> Últimos leads</div></div><div id="dash-leads"></div></div>
+    </div>
+
+    <div id="tab-leads" class="tab">
+      <div class="detail-view" id="lead-detail">
+        <div class="back-btn" onclick="closeLeadDetail()"><i class="ti ti-arrow-left"></i> Voltar aos leads</div>
+        <div id="lead-detail-content"></div>
+      </div>
+      <div id="lead-list-view">
+        <div class="pills" id="lead-pills">
+          <button class="pill active" onclick="setLeadF('Todos',this)">Todos</button>
+          <button class="pill" onclick="setLeadF('Lead Novo',this)">Novos</button>
+          <button class="pill" onclick="setLeadF('Quente',this)">🔥 Quentes</button>
+          <button class="pill" onclick="setLeadF('Negociação',this)">Negociação</button>
+          <button class="pill" onclick="setLeadF('Perdido',this)">Perdidos</button>
+        </div>
+        <div class="pills" style="margin-top:6px" id="cat-pills">
+          <button class="pill active" onclick="setCatF('Todos',this)">Todos</button>
+          <button class="pill" onclick="setCatF('Lançamentos',this)">Lançamentos</button>
+          <button class="pill" onclick="setCatF('Prontos',this)">Prontos</button>
+          <button class="pill" onclick="setCatF('Locação',this)">Locação</button>
+        </div>
+        <div id="leads-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+    </div>
+
+    <div id="tab-empreend" class="tab">
+      <div class="detail-view" id="emp-detail">
+        <div class="back-btn" onclick="closeEmpDetail()"><i class="ti ti-arrow-left"></i> Voltar aos produtos</div>
+        <div id="emp-detail-content"></div>
+      </div>
+      <div id="emp-list-view">
+        <div class="pills" id="emp-pills">
+          <button class="pill active" onclick="setEmpF('Todos',this)">Todos</button>
+          <button class="pill" onclick="setEmpF('Lançamentos',this)">Lançamentos</button>
+          <button class="pill" onclick="setEmpF('Prontos',this)">Prontos</button>
+          <button class="pill" onclick="setEmpF('Locação',this)">Locação</button>
+        </div>
+        <div id="emp-list" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+    </div>
+
+    <div id="tab-followup" class="tab">
+      <div class="card" style="background:#2d2a14;border-color:#5c4a14">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <i class="ti ti-alert-triangle" style="color:var(--amber);font-size:18px"></i>
+          <span style="font-size:13px;font-weight:600;color:var(--amber)">Clientes sem contato há 2+ dias</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2)">Atualize o status ou registre um contato.</div>
+      </div>
+      <div id="followup-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <div id="tab-msgs" class="tab">
+      <div style="font-size:12px;color:var(--text2);padding:2px 0 6px">Toque para copiar e enviar pelo WhatsApp</div>
+      <div id="msgs-list"></div>
+    </div>
+
+  </div>
+</div><!-- /main-area -->
+</div><!-- /app desktop -->
+
+<button class="fab" onclick="openAddModal()"><i class="ti ti-plus"></i></button>
+
+<div class="overlay" id="overlay" onclick="handleOC(event)">
+  <div class="modal" id="modal">
+    <div class="modal-title">
+      <span id="modal-title-text"></span>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── SUPABASE CONFIG ─────────────────────────────────────────────────────────
+const SB_URL = 'https://dgeovvwqpuqyneywurxx.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZW92dndxcHVxeW5leXd1cnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNzE0MTAsImV4cCI6MjA5Mzc0NzQxMH0.813e4dshWCcPAl9t48BL1DWvmNdbHDvtKpqk7aQShrM';
+
+const HEADERS = {
+  'Content-Type': 'application/json',
+  'apikey': SB_KEY,
+  'Authorization': 'Bearer ' + SB_KEY,
+  'Prefer': 'return=representation'
+};
+
+async function sbGet(table) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?select=*&order=created_at.asc`, {headers: HEADERS});
+  if (!r.ok) throw new Error(await r.text());
+  const rows = await r.json();
+  return rows.map(row => ({id: row.id, ...row.data}));
+}
+
+async function sbUpsert(table, obj) {
+  const {id, ...rest} = obj;
+  const r = await fetch(`${SB_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation'},
+    body: JSON.stringify({id, data: {...rest}})
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function sbDelete(table, id) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'DELETE', headers: HEADERS
+  });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let DB = {leads:[], empreendimentos:[], contatos:[]};
+let leadF='Todos', catF='Todos', empF='Todos', editId=null, curTab='dashboard';
+let syncing = false;
+
+const ETAPAS=['Lead Novo','Primeiro Contato','Qualificação','Proposta Enviada','Visita Agendada','Negociação','Quente','Fechado','Perdido','Sem Interesse'];
+const ORIGENS=['Instagram Ads','Facebook Ads','WhatsApp','Indicação','OLX','Site','Portal Imobiliário','Tráfego Pago','Orgânico','Outro'];
+const TAGS_LIST=['🔥 Quente','💰 Investidor','🏠 1ª Compra','🏦 Financiamento','🔄 Permuta','⚡ Urgente','👑 Alto Padrão','🔕 Não Respondeu','🌿 Terreno','🏡 Casa Pronta'];
+const CATEGORIAS=['Lançamentos','Prontos','Locação'];
+
+// ─── SYNC UI ─────────────────────────────────────────────────────────────────
+function setSyncStatus(state) {
+  ['sync-dot','sync-dot2'].forEach(id=>{const d=document.getElementById(id);if(d)d.className='sync-dot'+(state==='syncing'?' syncing':state==='error'?' error':'');});
+  ['sync-text','sync-text2'].forEach(id=>{const t=document.getElementById(id);if(t)t.textContent=state==='syncing'?'salvando...':state==='error'?'offline':'online';});
+}
+
+// ─── LOAD FROM CLOUD ─────────────────────────────────────────────────────────
+async function loadFromCloud() {
+  setLoadMsg('Carregando leads...');
+  try {
+    DB.leads = await sbGet('leads');
+    setLoadMsg('Carregando produtos...');
+    DB.empreendimentos = await sbGet('empreendimentos');
+    setLoadMsg('Carregando histórico...');
+    DB.contatos = await sbGet('contatos');
+
+    if (DB.empreendimentos.length === 0) {
+      setLoadMsg('Configurando dados iniciais...');
+      await seedCloud();
+    }
+    setSyncStatus('ok');
+  } catch(e) {
+    console.error(e);
+    setSyncStatus('error');
+    toast('Erro ao conectar. Usando dados locais.','error');
+    loadLocal();
+  }
+}
+
+function setLoadMsg(msg) {
+  const el = document.getElementById('loading-msg');
+  if (el) el.textContent = msg;
+}
+
+// ─── LOCAL FALLBACK ───────────────────────────────────────────────────────────
+function loadLocal() {
+  try {
+    const s = localStorage.getItem('crm_local');
+    if (s) { DB = JSON.parse(s); ['leads','empreendimentos','contatos'].forEach(k=>{if(!DB[k])DB[k]=[];}); }
+    else seedLocal();
+  } catch(e) { seedLocal(); }
+}
+function saveLocal() { localStorage.setItem('crm_local', JSON.stringify(DB)); }
+
+// ─── SEED DATA ────────────────────────────────────────────────────────────────
+async function seedCloud() {
+  const emps = [
+    {id:uid(),nome:"Lagos do Engenho",tipo:"Lançamentos",cidade:"Piracicaba",vlMin:180000,vlMax:350000,descricao:"Condomínio fechado com lagos e área verde"},
+    {id:uid(),nome:"Villa Colinas",tipo:"Lançamentos",cidade:"Piracicaba",vlMin:250000,vlMax:500000,descricao:"Terrenos em condomínio de alto padrão"},
+    {id:uid(),nome:"Terras de Ártemis",tipo:"Lançamentos",cidade:"Ártemis",vlMin:120000,vlMax:220000,descricao:"Lotes residenciais com infraestrutura completa"},
+    {id:uid(),nome:"Carteira Prontos",tipo:"Prontos",cidade:"Piracicaba",vlMin:200000,vlMax:1500000,descricao:"Casas e apartamentos disponíveis"},
+    {id:uid(),nome:"Locação Residencial",tipo:"Locação",cidade:"Piracicaba",vlMin:1200,vlMax:5000,descricao:"Imóveis para aluguel"},
+  ];
+  for (const e of emps) await sbUpsert('empreendimentos', e);
+  DB.empreendimentos = emps;
+
+  const empIds = emps.map(e => e.id);
+  const leads = [
+    {id:uid(),nome:"Carlos Eduardo Silva",tel:"19991234567",email:"carlos@email.com",cidade:"Piracicaba",vlMin:200000,vlMax:350000,categoria:"Lançamentos",empId:empIds[0],etapa:"Quente",origem:"Instagram Ads",origemDetalhe:"Villa Colinas - Vídeo 02",tags:['🔥 Quente','🏦 Financiamento'],obs:"Aprovação bancária em andamento.",ultimoContato:daysAgo(1)},
+    {id:uid(),nome:"Mariana Costa Ferreira",tel:"19987650001",email:"mariana@gmail.com",cidade:"Piracicaba",vlMin:150000,vlMax:250000,categoria:"Lançamentos",empId:empIds[2],etapa:"Qualificação",origem:"WhatsApp",origemDetalhe:"",tags:['🏠 1ª Compra'],obs:"Quer condomínio fechado.",ultimoContato:daysAgo(3)},
+    {id:uid(),nome:"Roberto Alves & Cia",tel:"1932124400",email:"contato@ralves.com",cidade:"Piracicaba",vlMin:300000,vlMax:1200000,categoria:"Prontos",empId:empIds[3],etapa:"Negociação",origem:"Indicação",origemDetalhe:"",tags:['💰 Investidor'],obs:"Empresa em expansão.",ultimoContato:daysAgo(0)},
+    {id:uid(),nome:"Fábio Rodrigues",tel:"19980012233",email:"fabio@empresa.com",cidade:"Piracicaba",vlMin:400000,vlMax:700000,categoria:"Prontos",empId:empIds[3],etapa:"Fechado",origem:"Tráfego Pago",origemDetalhe:"",tags:['🔥 Quente'],obs:"Financiamento aprovado na CEF.",ultimoContato:daysAgo(0)},
+  ];
+  for (const l of leads) await sbUpsert('leads', l);
+  DB.leads = leads;
+}
+
+function seedLocal() {
+  DB.empreendimentos=[
+    {id:uid(),nome:"Lagos do Engenho",tipo:"Lançamentos",cidade:"Piracicaba",vlMin:180000,vlMax:350000,descricao:"Condomínio fechado"},
+    {id:uid(),nome:"Villa Colinas",tipo:"Lançamentos",cidade:"Piracicaba",vlMin:250000,vlMax:500000,descricao:"Terrenos alto padrão"},
+  ];
+  DB.leads=[];DB.contatos=[];
+  saveLocal();
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
+function daysAgo(n){const d=new Date();d.setDate(d.getDate()-n);return d.toISOString().split('T')[0]}
+function daysSince(d){if(!d)return 99;return Math.floor((new Date()-new Date(d))/(864e5))}
+function fd(d){if(!d)return'—';const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`}
+function fmtTel(t){const d=(t||'').replace(/\D/g,'');if(d.length===11)return`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;if(d.length===10)return`(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;return t}
+function ini(n){return(n||'?').split(' ').slice(0,2).map(x=>x[0]).join('').toUpperCase()}
+function avc(n){const c=['#4f8ef7','#22c77a','#7c5cfc','#f59e0b','#ef4444','#14b8a6','#ec4899'];return c[(n||'A').charCodeAt(0)%c.length]}
+function val(id){return(document.getElementById(id)||{}).value||''}
+function valt(id){return((document.getElementById(id)||{}).value||'').trim()}
+function selOpts(arr,cur){return arr.map(o=>`<option${cur===o?' selected':''}>${o}</option>`).join('')}
+function waLink(tel){const d=(tel||'').replace(/\D/g,'');const n=d.startsWith('55')?d:'55'+d;return`https://wa.me/${n}`}
+function toast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+type;setTimeout(()=>t.className='toast',2500)}
+
+function etapaBadge(e){
+  const m={'Lead Novo':'novo','Quente':'quente','Perdido':'perdido','Fechado':'ganho','Sem Interesse':'perdido','Negociação':'neg'};
+  return`<span class="badge ${m[e]||'ativo'}">${e}</span>`;
+}
+function origemBadge(o){
+  const m={'Instagram Ads':'orig-ig','Facebook Ads':'orig-fb','WhatsApp':'orig-wa','Indicação':'orig-ind','Site':'orig-site','Portal Imobiliário':'orig-portal','Tráfego Pago':'orig-ads','OLX':'orig-olx','Orgânico':'orig-org'};
+  return`<span class="origem-badge ${m[o]||'orig-site'}">${o||'—'}</span>`;
+}
+function renderTags(tags){
+  if(!tags||!tags.length)return'';
+  const m={'🔥 Quente':'quente','💰 Investidor':'investidor','🏠 1ª Compra':'primeira','🏦 Financiamento':'financ','🔄 Permuta':'permuta','⚡ Urgente':'urgente','👑 Alto Padrão':'alto','🔕 Não Respondeu':'sem-resp','🌿 Terreno':'terreno','🏡 Casa Pronta':'casa'};
+  return`<div class="tags">${tags.map(t=>`<span class="tag ${m[t]||''}">${t}</span>`).join('')}</div>`;
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+const TAB_LABELS={'dashboard':'Dashboard','leads':'Leads','empreend':'Produtos','followup':'Follow-up','msgs':'Mensagens'};
+function showTab(name,btn){
+  curTab=name;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn,.sidebar-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  // sync both navs
+  document.querySelectorAll('.nav-btn,.sidebar-nav-btn').forEach(b=>{
+    const onclick=b.getAttribute('onclick')||'';
+    if(onclick.includes("'"+name+"'"))b.classList.add('active');
+  });
+  const dtitle=document.getElementById('desktop-tab-title');
+  if(dtitle)dtitle.textContent=TAB_LABELS[name]||name;
+  renderAll();
+}
+
+// ─── SEARCH ──────────────────────────────────────────────────────────────────
+function toggleSearch(){
+  const el=document.getElementById('global-search');
+  el.classList.toggle('open');
+  if(el.classList.contains('open'))document.getElementById('gsearch').focus();
+  else{document.getElementById('gsearch').value='';document.getElementById('search-results').innerHTML='';}
+}
+function globalSearch(q){
+  const el=document.getElementById('search-results');
+  if(!q||q.length<2){el.innerHTML='';return}
+  const ql=q.toLowerCase();
+  const res=DB.leads.filter(l=>l.nome.toLowerCase().includes(ql)||(l.tel||'').includes(q)||(DB.empreendimentos.find(e=>e.id===l.empId)||{}).nome?.toLowerCase().includes(ql)).slice(0,6);
+  if(!res.length){el.innerHTML='<div class="empty" style="padding:12px"><i class="ti ti-search-off"></i>Nenhum resultado</div>';return}
+  return res.map(l=>{
+    const emp=DB.empreendimentos.find(e=>e.id===l.empId);
+    return`<div class="lead-item" onclick="openLeadDetail('${l.id}');document.getElementById('global-search').classList.remove('open')" style="margin-bottom:6px">
+      <div class="lead-top">
+        <div class="lead-avatar" style="background:${avc(l.nome)}22;color:${avc(l.nome)}">${ini(l.nome)}</div>
+        <div class="lead-info"><div class="lead-name">${l.nome}</div><div class="lead-detail">${emp?emp.nome:'—'} · ${fmtTel(l.tel)}</div></div>
+        ${etapaBadge(l.etapa)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function renderDashboard(){
+  const novos=DB.leads.filter(l=>l.etapa==='Lead Novo').length;
+  const atend=DB.leads.filter(l=>!['Lead Novo','Fechado','Perdido','Sem Interesse'].includes(l.etapa)).length;
+  const quentes=DB.leads.filter(l=>l.etapa==='Quente').length;
+  const frios=DB.leads.filter(l=>daysSince(l.ultimoContato)>=3&&!['Fechado','Perdido','Sem Interesse'].includes(l.etapa)).length;
+  const pendFU=DB.leads.filter(l=>daysSince(l.ultimoContato)>=2&&!['Fechado','Perdido','Sem Interesse'].includes(l.etapa)).length;
+  const perdidos=DB.leads.filter(l=>l.etapa==='Perdido').length;
+
+  document.getElementById('kpi-grid').innerHTML=`
+    <div class="kpi accent"><div class="kpi-val">${novos}</div><div class="kpi-label">Leads Novos</div></div>
+    <div class="kpi amber"><div class="kpi-val">${atend}</div><div class="kpi-label">Em Atend.</div></div>
+    <div class="kpi" style="border-color:#3a1a14"><div class="kpi-val" style="color:#ff6b6b">${quentes}</div><div class="kpi-label">🔥 Quentes</div></div>
+    <div class="kpi teal"><div class="kpi-val">${frios}</div><div class="kpi-label">Frios</div></div>
+    <div class="kpi pink"><div class="kpi-val">${pendFU}</div><div class="kpi-label">Follow-ups</div></div>
+    <div class="kpi red"><div class="kpi-val">${perdidos}</div><div class="kpi-label">Perdidos</div></div>`;
+
+  const cores={'Lead Novo':'#4f8ef7','Primeiro Contato':'#7c5cfc','Qualificação':'#14b8a6','Proposta Enviada':'#f59e0b','Visita Agendada':'#ec4899','Negociação':'#f97316','Quente':'#ff6b6b','Fechado':'#22c77a','Perdido':'#ef4444','Sem Interesse':'#555e7a'};
+  const max=Math.max(...ETAPAS.map(e=>DB.leads.filter(l=>l.etapa===e).length),1);
+  document.getElementById('funil').innerHTML=ETAPAS.map(e=>{
+    const cnt=DB.leads.filter(l=>l.etapa===e).length;
+    return`<div class="funil-row"><span class="funil-label">${e}</span><div class="funil-bar-wrap"><div class="funil-bar" style="width:${Math.max(Math.round(cnt/max*100),3)}%;background:${cores[e]||'#4f8ef7'}">${cnt}</div></div></div>`;
+  }).join('');
+
+  const alerts=DB.leads.filter(l=>daysSince(l.ultimoContato)>=2&&!['Fechado','Perdido','Sem Interesse'].includes(l.etapa)).slice(0,3);
+  document.getElementById('followup-alerts').innerHTML=alerts.map(l=>`
+    <div class="followup-alert" onclick="openLeadDetail('${l.id}')">
+      <i class="ti ti-alarm"></i>
+      <div class="followup-alert-text"><div class="followup-alert-title">${l.nome}</div><div class="followup-alert-sub">${daysSince(l.ultimoContato)} dias sem contato · ${l.etapa}</div></div>
+      <a class="btn-icon wa" href="${waLink(l.tel)}" target="_blank" onclick="event.stopPropagation()"><i class="ti ti-brand-whatsapp"></i></a>
+    </div>`).join('');
+
+  const recentes=[...DB.leads].sort((a,b)=>b.id.localeCompare(a.id)).slice(0,5);
+  document.getElementById('dash-leads').innerHTML=recentes.length?recentes.map(l=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openLeadDetail('${l.id}')">
+      <div class="lead-avatar" style="width:30px;height:30px;font-size:11px;background:${avc(l.nome)}22;color:${avc(l.nome)}">${ini(l.nome)}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.nome}</div><div style="font-size:11px;color:var(--text2)">${l.etapa} · ${daysSince(l.ultimoContato)}d atrás</div></div>
+      ${etapaBadge(l.etapa)}
+    </div>`).join(''):'<div class="empty"><i class="ti ti-users-off"></i>Sem leads cadastrados</div>';
+}
+
+// ─── LEADS ────────────────────────────────────────────────────────────────────
+function setLeadF(f,btn){leadF=f;if(btn){document.querySelectorAll('#lead-pills .pill').forEach(p=>p.classList.remove('active'));btn.classList.add('active');}renderLeads()}
+function setCatF(f,btn){catF=f;document.querySelectorAll('#cat-pills .pill').forEach(p=>p.classList.remove('active'));btn.classList.add('active');renderLeads()}
+
+function renderLeads(){
+  const el=document.getElementById('leads-list');if(!el)return;
+  const list=DB.leads.filter(l=>{
+    const mE=leadF==='Todos'||l.etapa===leadF||(leadF==='Quente'&&(l.etapa==='Quente'||(l.tags||[]).includes('🔥 Quente')));
+    const mC=catF==='Todos'||l.categoria===catF;
+    return mE&&mC;
+  });
+  if(!list.length){el.innerHTML='<div class="empty"><i class="ti ti-users-off"></i>Nenhum lead encontrado</div>';return}
+  el.innerHTML=list.map(l=>{
+    const emp=DB.empreendimentos.find(e=>e.id===l.empId);
+    const dias=daysSince(l.ultimoContato);
+    return`<div class="lead-item" onclick="openLeadDetail('${l.id}')">
+      <div class="lead-top">
+        <div class="lead-avatar" style="background:${avc(l.nome)}22;color:${avc(l.nome)}">${ini(l.nome)}</div>
+        <div class="lead-info">
+          <div class="lead-name">${l.nome}</div>
+          <div class="lead-detail">${emp?emp.nome:'—'} · ${fmtTel(l.tel)}</div>
+          <div style="margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${etapaBadge(l.etapa)}${origemBadge(l.origem)}${dias>=2?`<span style="font-size:10px;color:var(--amber)">${dias}d sem contato</span>`:''}</div>
+        </div>
+        <div class="lead-actions" onclick="event.stopPropagation()">
+          <a class="btn-icon wa" href="${waLink(l.tel)}" target="_blank"><i class="ti ti-brand-whatsapp"></i></a>
+          <button class="btn-icon edit" onclick="editLead('${l.id}')"><i class="ti ti-edit"></i></button>
+        </div>
+      </div>
+      ${renderTags(l.tags)}
+    </div>`;
+  }).join('');
+}
+
+function openLeadDetail(id){
+  const l=DB.leads.find(x=>x.id===id);if(!l)return;
+  if(curTab!=='leads'){showTab('leads',document.querySelectorAll('.nav-btn')[1]);}
+  document.getElementById('lead-list-view').style.display='none';
+  document.getElementById('lead-detail').classList.add('open');
+  const emp=DB.empreendimentos.find(e=>e.id===l.empId);
+  const hist=DB.contatos.filter(c=>c.leadId===id).sort((a,b)=>b.data.localeCompare(a.data));
+  const matches=DB.empreendimentos.filter(e=>e.id!==l.empId&&(l.categoria?e.tipo===l.categoria:true)&&(!l.vlMax||!e.vlMin||+l.vlMax>=+e.vlMin)).slice(0,3);
+
+  document.getElementById('lead-detail-content').innerHTML=`
+    <div class="detail-card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div class="lead-avatar" style="width:46px;height:46px;font-size:16px;border-radius:50%;background:${avc(l.nome)}22;color:${avc(l.nome)}">${ini(l.nome)}</div>
+        <div style="flex:1"><div style="font-size:15px;font-weight:600">${l.nome}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">${l.cidade||'—'}</div><div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap">${etapaBadge(l.etapa)}${origemBadge(l.origem)}</div></div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <a class="btn-icon wa" href="${waLink(l.tel)}" target="_blank" style="width:34px;height:34px;font-size:16px"><i class="ti ti-brand-whatsapp"></i></a>
+          <button class="btn-icon edit" onclick="editLead('${l.id}')" style="width:34px;height:34px"><i class="ti ti-edit"></i></button>
+        </div>
+      </div>
+      ${renderTags(l.tags)}
+      <div style="margin-top:12px">
+        <div class="detail-field"><span class="detail-field-label">Telefone</span><span class="detail-field-val"><a href="tel:+55${(l.tel||'').replace(/\D/g,'')}" style="color:var(--accent);text-decoration:none">${fmtTel(l.tel)}</a></span></div>
+        <div class="detail-field"><span class="detail-field-label">E-mail</span><span class="detail-field-val">${l.email||'—'}</span></div>
+        <div class="detail-field"><span class="detail-field-label">Produto</span><span class="detail-field-val">${emp?emp.nome:'—'}</span></div>
+        <div class="detail-field"><span class="detail-field-label">Categoria</span><span class="detail-field-val">${l.categoria||'—'}</span></div>
+        <div class="detail-field"><span class="detail-field-label">Faixa de valor</span><span class="detail-field-val">R$ ${(+l.vlMin||0).toLocaleString('pt-BR')} – R$ ${(+l.vlMax||0).toLocaleString('pt-BR')}</span></div>
+        <div class="detail-field"><span class="detail-field-label">Origem</span><span class="detail-field-val">${l.origemDetalhe||l.origem||'—'}</span></div>
+        <div class="detail-field"><span class="detail-field-label">Último contato</span><span class="detail-field-val">${fd(l.ultimoContato)} (${daysSince(l.ultimoContato)}d atrás)</span></div>
+        ${l.obs?`<div class="detail-field" style="flex-direction:column;gap:4px"><span class="detail-field-label">Observações</span><span style="font-size:12px;margin-top:4px;line-height:1.6">${l.obs}</span></div>`:''}
+      </div>
+    </div>
+    ${matches.length?`<div class="match-card"><div class="match-title"><i class="ti ti-sparkles"></i> Produtos compatíveis</div>${matches.map(m=>`<div class="match-item"><span>${m.nome}</span><span style="color:var(--text2);font-size:11px">${m.tipo}</span></div>`).join('')}</div>`:''}
+    <div class="detail-card">
+      <div class="card-title"><div class="card-title-left"><i class="ti ti-history"></i> Histórico de contatos</div>
+        <button onclick="addContato('${l.id}')" style="background:transparent;border:1px solid var(--accent);border-radius:6px;color:var(--accent);padding:4px 10px;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif">+ Registrar</button>
+      </div>
+      ${hist.length?hist.map(c=>`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:12px"><div style="display:flex;justify-content:space-between"><span style="font-weight:600">${c.tipo}</span><span style="color:var(--text2);font-size:11px">${fd(c.data)}</span></div><div style="color:var(--text2);margin-top:3px">${c.obs||'—'}</div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">Nenhum contato registrado.</div>'}
+    </div>
+    <button class="btn-danger" onclick="delLead('${l.id}',true)">Excluir lead</button>`;
+}
+
+function closeLeadDetail(){
+  document.getElementById('lead-list-view').style.display='';
+  document.getElementById('lead-detail').classList.remove('open');
+  renderLeads();
+}
+
+// ─── EMPREENDIMENTOS ──────────────────────────────────────────────────────────
+function setEmpF(f,btn){empF=f;document.querySelectorAll('#emp-pills .pill').forEach(p=>p.classList.remove('active'));btn.classList.add('active');renderEmpreendimentos()}
+
+function renderEmpreendimentos(){
+  const el=document.getElementById('emp-list');if(!el)return;
+  const list=DB.empreendimentos.filter(e=>empF==='Todos'||e.tipo===empF);
+  if(!list.length){el.innerHTML='<div class="empty"><i class="ti ti-building-off"></i>Sem produtos</div>';return}
+  el.innerHTML=list.map(e=>{
+    const leads=DB.leads.filter(l=>l.empId===e.id);
+    const quentes=leads.filter(l=>l.etapa==='Quente'||(l.tags||[]).includes('🔥 Quente')).length;
+    const pend=leads.filter(l=>daysSince(l.ultimoContato)>=2&&!['Fechado','Perdido','Sem Interesse'].includes(l.etapa)).length;
+    const cor=e.tipo==='Lançamentos'?'var(--amber)':e.tipo==='Locação'?'var(--teal)':'var(--accent)';
+    return`<div class="emp-card" onclick="openEmpDetail('${e.id}')">
+      <div class="emp-header">
+        <div><div class="emp-name">${e.nome}</div><div class="emp-tipo" style="color:${cor}">${e.tipo} · ${e.cidade}</div></div>
+        <div onclick="event.stopPropagation()"><button class="btn-icon edit" onclick="editEmp('${e.id}')"><i class="ti ti-edit"></i></button></div>
+      </div>
+      <div class="emp-stats">
+        <div class="emp-stat"><div class="emp-stat-val">${leads.length}</div><div class="emp-stat-label">Leads</div></div>
+        <div class="emp-stat"><div class="emp-stat-val" style="color:#ff6b6b">${quentes}</div><div class="emp-stat-label">🔥 Quentes</div></div>
+        <div class="emp-stat"><div class="emp-stat-val" style="color:var(--amber)">${pend}</div><div class="emp-stat-label">Follow-up</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openEmpDetail(id){
+  const e=DB.empreendimentos.find(x=>x.id===id);if(!e)return;
+  document.getElementById('emp-list-view').style.display='none';
+  document.getElementById('emp-detail').classList.add('open');
+  const leads=DB.leads.filter(l=>l.empId===id);
+  document.getElementById('emp-detail-content').innerHTML=`
+    <div class="detail-card" style="margin-bottom:12px">
+      <div style="font-size:16px;font-weight:600;margin-bottom:4px">${e.nome}</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">${e.tipo} · ${e.cidade}</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">${e.descricao||''}</div>
+      <div style="font-size:12px">Faixa: <strong>R$ ${(+e.vlMin||0).toLocaleString('pt-BR')} – R$ ${(+e.vlMax||0).toLocaleString('pt-BR')}</strong></div>
+      <button onclick="editEmp('${e.id}')" style="margin-top:12px;background:transparent;border:1px solid var(--accent);border-radius:6px;color:var(--accent);padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif">Editar produto</button>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">${leads.length} clientes interessados</div>
+    ${leads.length?leads.map(l=>`
+      <div class="lead-item" style="margin-bottom:8px" onclick="openLeadDetail('${l.id}')">
+        <div class="lead-top">
+          <div class="lead-avatar" style="width:32px;height:32px;font-size:11px;background:${avc(l.nome)}22;color:${avc(l.nome)}">${ini(l.nome)}</div>
+          <div class="lead-info"><div class="lead-name">${l.nome}</div><div class="lead-detail">Último contato: ${fd(l.ultimoContato)} · ${daysSince(l.ultimoContato)}d</div><div style="margin-top:3px">${etapaBadge(l.etapa)}</div></div>
+          <a class="btn-icon wa" href="${waLink(l.tel)}" target="_blank" onclick="event.stopPropagation()"><i class="ti ti-brand-whatsapp"></i></a>
+        </div>
+      </div>`).join(''):'<div class="empty"><i class="ti ti-users-off"></i>Sem clientes para este produto</div>'}`;
+}
+function closeEmpDetail(){document.getElementById('emp-list-view').style.display='';document.getElementById('emp-detail').classList.remove('open')}
+
+// ─── FOLLOW-UP ────────────────────────────────────────────────────────────────
+function renderFollowup(){
+  const el=document.getElementById('followup-list');if(!el)return;
+  const list=DB.leads.filter(l=>daysSince(l.ultimoContato)>=2&&!['Fechado','Perdido','Sem Interesse'].includes(l.etapa)).sort((a,b)=>daysSince(b.ultimoContato)-daysSince(a.ultimoContato));
+  if(!list.length){el.innerHTML='<div class="empty"><i class="ti ti-checks"></i>Nenhum follow-up pendente!</div>';return}
+  el.innerHTML=list.map(l=>{
+    const emp=DB.empreendimentos.find(e=>e.id===l.empId);
+    const dias=daysSince(l.ultimoContato);
+    const c=dias>=5?'var(--red)':dias>=3?'var(--amber)':'var(--text2)';
+    return`<div class="lead-item" onclick="openLeadDetail('${l.id}')">
+      <div class="lead-top">
+        <div class="lead-avatar" style="background:${avc(l.nome)}22;color:${avc(l.nome)}">${ini(l.nome)}</div>
+        <div class="lead-info">
+          <div class="lead-name">${l.nome}</div>
+          <div class="lead-detail">${emp?emp.nome:'—'} · ${etapaBadge(l.etapa)}</div>
+          <div style="margin-top:4px;font-size:11px;font-weight:600;color:${c}"><i class="ti ti-clock" style="font-size:12px;vertical-align:-1px"></i> ${dias} dias sem contato</div>
+        </div>
+        <div class="lead-actions" onclick="event.stopPropagation()">
+          <a class="btn-icon wa" href="${waLink(l.tel)}" target="_blank"><i class="ti ti-brand-whatsapp"></i></a>
+          <button class="btn-icon edit" onclick="quickContato('${l.id}')" title="Marcar contato"><i class="ti ti-check"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function quickContato(id){
+  const l=DB.leads.find(x=>x.id===id);if(!l)return;
+  l.ultimoContato=new Date().toISOString().split('T')[0];
+  const c={id:uid(),leadId:id,tipo:'Contato Rápido',data:l.ultimoContato,obs:'Marcado via follow-up.'};
+  DB.contatos.push(c);
+  setSyncStatus('syncing');
+  try{await sbUpsert('leads',l);await sbUpsert('contatos',c);setSyncStatus('ok');}
+  catch(e){saveLocal();setSyncStatus('error');}
+  renderAll();toast('Contato registrado!');
+}
+
+// ─── MENSAGENS ────────────────────────────────────────────────────────────────
+const MSGS=[
+  {titulo:'Primeiro contato – Lançamento',body:'Olá, [NOME]! 👋 Vi que você demonstrou interesse em nossos lançamentos. Sou [CORRETOR], especialista em imóveis na região. Posso te passar mais informações? 🏠'},
+  {titulo:'Follow-up após 1 dia',body:'Oi, [NOME]! Tudo bem? Passei para ver se você analisou as informações que enviei. Tenho condições especiais essa semana. Posso te ajudar? 😊'},
+  {titulo:'Reativar lead frio',body:'Olá, [NOME]! Há um tempo não nos falamos. Você ainda tem interesse em adquirir seu imóvel? Temos novidades e condições imperdíveis! 🔑'},
+  {titulo:'Confirmar visita',body:'Oi, [NOME]! Confirmando nossa visita para [DATA] às [HORA]. Estou animado para te mostrar o empreendimento! Qualquer dúvida é só chamar. 📍'},
+  {titulo:'Envio de proposta',body:'[NOME], preparei uma proposta especial para você! 📋 Confira os valores e condições em anexo. Quando podemos conversar?'},
+  {titulo:'Após visita – Quente',body:'[NOME], foi um prazer te receber hoje! 🏡 O que achou? Fico à disposição. As unidades estão se esgotando rapidamente!'},
+  {titulo:'Cliente perdido – Reengajamento',body:'Oi, [NOME]! Soube que ainda está em busca do imóvel ideal. Temos novos produtos que podem se encaixar no seu perfil. Posso apresentar? 🏠✨'},
+  {titulo:'Parabéns pelo fechamento',body:'[NOME], parabéns pela conquista do seu imóvel! 🎉 Foi uma satisfação enorme te ajudar nessa jornada!'},
+];
+function renderMsgs(){
+  const el=document.getElementById('msgs-list');if(!el)return;
+  el.innerHTML=MSGS.map(m=>`
+    <div class="msg-template" onclick="copyMsg('${btoa(unescape(encodeURIComponent(m.body)))}')">
+      <div class="msg-template-title"><i class="ti ti-copy" style="font-size:12px;margin-right:4px"></i>${m.titulo}</div>
+      <div class="msg-template-body">${m.body}</div>
+    </div>`).join('');
+}
+function copyMsg(b64){
+  const body=decodeURIComponent(escape(atob(b64)));
+  navigator.clipboard.writeText(body).then(()=>toast('Copiado! Cole no WhatsApp')).catch(()=>toast('Erro ao copiar','error'));
+}
+
+// ─── CONTATO FORM ─────────────────────────────────────────────────────────────
+function addContato(leadId){
+  openModal('Registrar Contato',`
+    <div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="ctp">${selOpts(['WhatsApp','Ligação','Visita','Reunião','E-mail','Outro'],'')}</select></div>
+    <div class="form-group"><label class="form-label">Data</label><input class="form-input" id="cdt" type="date" value="${new Date().toISOString().split('T')[0]}"></div>
+    <div class="form-group"><label class="form-label">Anotação</label><textarea class="form-textarea" id="cob" placeholder="O que foi discutido?"></textarea></div>
+    <div class="form-group"><label class="form-label">Atualizar etapa</label><select class="form-select" id="ceta">${selOpts(['(manter atual)',...ETAPAS],'(manter atual)')}</select></div>
+    <button class="btn-primary" id="save-contato-btn" onclick="saveContato('${leadId}')">Salvar contato</button>`);
+}
+async function saveContato(leadId){
+  const l=DB.leads.find(x=>x.id===leadId);if(!l)return;
+  const btn=document.getElementById('save-contato-btn');
+  if(btn)btn.disabled=true;
+  const dt=val('cdt')||new Date().toISOString().split('T')[0];
+  const novaEtapa=val('ceta');
+  const c={id:uid(),leadId,tipo:val('ctp'),data:dt,obs:valt('cob')};
+  DB.contatos.push(c);
+  l.ultimoContato=dt;
+  if(novaEtapa!=='(manter atual)')l.etapa=novaEtapa;
+  setSyncStatus('syncing');
+  try{await sbUpsert('contatos',c);await sbUpsert('leads',l);setSyncStatus('ok');toast('Contato salvo na nuvem!');}
+  catch(e){saveLocal();setSyncStatus('error');toast('Salvo localmente (offline)','warn');}
+  closeModal();renderAll();
+  setTimeout(()=>openLeadDetail(leadId),100);
+}
+
+// ─── LEAD FORM ────────────────────────────────────────────────────────────────
+function openLeadForm(id){
+  editId=id||null;const l=id?DB.leads.find(x=>x.id===id):{};
+  const empOpts=DB.empreendimentos.map(e=>`<option value="${e.id}"${l.empId===e.id?' selected':''}>${e.nome}</option>`).join('');
+  const tagHTML=TAGS_LIST.map(t=>`<button type="button" class="tag-opt${(l.tags||[]).includes(t)?' selected':''}" onclick="this.classList.toggle('selected')">${t}</button>`).join('');
+  openModal(id?'Editar Lead':'Novo Lead',`
+    <div class="form-section">Dados pessoais</div>
+    <div class="form-group"><label class="form-label">Nome *</label><input class="form-input" id="fn" value="${l.nome||''}" placeholder="Nome completo"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">WhatsApp *</label><input class="form-input" id="ft" value="${l.tel||''}" placeholder="(00) 00000-0000"></div>
+      <div class="form-group"><label class="form-label">E-mail</label><input class="form-input" id="fe" value="${l.email||''}" placeholder="email@..."></div>
+    </div>
+    <div class="form-group"><label class="form-label">Cidade</label><input class="form-input" id="fci" value="${l.cidade||''}" placeholder="Cidade"></div>
+    <div class="form-section">Perfil de busca</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Categoria</label><select class="form-select" id="fcat">${selOpts(CATEGORIAS,l.categoria)}</select></div>
+      <div class="form-group"><label class="form-label">Produto</label><select class="form-select" id="femp"><option value="">— Selecione —</option>${empOpts}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Valor mín (R$)</label><input class="form-input" id="fvmin" type="number" value="${l.vlMin||''}"></div>
+      <div class="form-group"><label class="form-label">Valor máx (R$)</label><input class="form-input" id="fvmax" type="number" value="${l.vlMax||''}"></div>
+    </div>
+    <div class="form-section">Origem e etapa</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Origem</label><select class="form-select" id="for">${selOpts(ORIGENS,l.origem)}</select></div>
+      <div class="form-group"><label class="form-label">Etapa</label><select class="form-select" id="fet">${selOpts(ETAPAS,l.etapa||'Lead Novo')}</select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Detalhe da origem</label><input class="form-input" id="fod" value="${l.origemDetalhe||''}" placeholder="Ex: Instagram Ads – Villa Colinas – Vídeo 02"></div>
+    <div class="form-section">Tags</div>
+    <div class="tag-picker">${tagHTML}</div>
+    <div class="form-section">Observações</div>
+    <div class="form-group"><textarea class="form-textarea" id="fob" placeholder="Interesses, restrições, situação financeira...">${l.obs||''}</textarea></div>
+    <button class="btn-primary" id="save-lead-btn" onclick="saveLead()">${id?'Salvar alterações':'Adicionar lead'}</button>
+    ${id?`<button class="btn-danger" onclick="delLead('${id}',true)">Excluir lead</button>`:''}`);
+}
+
+async function saveLead(){
+  const nome=valt('fn'),tel=valt('ft');
+  if(!nome||!tel){toast('Preencha nome e telefone','error');return}
+  const btn=document.getElementById('save-lead-btn');
+  if(btn){btn.disabled=true;btn.textContent='Salvando...';}
+  const tags=[...document.querySelectorAll('.tag-opt.selected')].map(b=>b.textContent.trim());
+  const obj={nome,tel,email:valt('fe'),cidade:valt('fci'),categoria:val('fcat'),empId:val('femp'),vlMin:+val('fvmin')||0,vlMax:+val('fvmax')||0,origem:val('for'),etapa:val('fet'),origemDetalhe:valt('fod'),obs:valt('fob'),tags,ultimoContato:new Date().toISOString().split('T')[0]};
+  if(editId){
+    const i=DB.leads.findIndex(x=>x.id===editId);
+    DB.leads[i]={...DB.leads[i],...obj};
+    setSyncStatus('syncing');
+    try{await sbUpsert('leads',DB.leads[i]);setSyncStatus('ok');toast('Lead atualizado!');}
+    catch(e){saveLocal();setSyncStatus('error');toast('Salvo localmente','warn');}
+  } else {
+    const novo={id:uid(),...obj};
+    DB.leads.push(novo);
+    setSyncStatus('syncing');
+    try{await sbUpsert('leads',novo);setSyncStatus('ok');toast('Lead salvo na nuvem! ☁️');}
+    catch(e){saveLocal();setSyncStatus('error');toast('Salvo localmente','warn');}
+  }
+  closeModal();renderAll();
+}
+function editLead(id){openLeadForm(id)}
+async function delLead(id,fromModal=false){
+  if(!confirm('Excluir este lead?'))return;
+  DB.leads=DB.leads.filter(x=>x.id!==id);
+  DB.contatos=DB.contatos.filter(c=>c.leadId!==id);
+  setSyncStatus('syncing');
+  try{await sbDelete('leads',id);setSyncStatus('ok');}
+  catch(e){saveLocal();setSyncStatus('error');}
+  if(fromModal)closeModal();
+  closeLeadDetail();renderAll();toast('Lead excluído');
+}
+
+// ─── EMP FORM ─────────────────────────────────────────────────────────────────
+function openEmpForm(id){
+  editId=id||null;const e=id?DB.empreendimentos.find(x=>x.id===id):{};
+  openModal(id?'Editar Produto':'Novo Produto',`
+    <div class="form-group"><label class="form-label">Nome *</label><input class="form-input" id="en" value="${e.nome||''}" placeholder="Ex: Lagos do Engenho"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="et">${selOpts(CATEGORIAS,e.tipo)}</select></div>
+      <div class="form-group"><label class="form-label">Cidade</label><input class="form-input" id="ec" value="${e.cidade||''}" placeholder="Cidade"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Valor mín (R$)</label><input class="form-input" id="evm" type="number" value="${e.vlMin||''}"></div>
+      <div class="form-group"><label class="form-label">Valor máx (R$)</label><input class="form-input" id="evx" type="number" value="${e.vlMax||''}"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Descrição</label><textarea class="form-textarea" id="ed">${e.descricao||''}</textarea></div>
+    <button class="btn-primary" id="save-emp-btn" onclick="saveEmp()">${id?'Salvar':'Adicionar produto'}</button>
+    ${id?`<button class="btn-danger" onclick="delEmp('${id}',true)">Excluir produto</button>`:''}`);
+}
+async function saveEmp(){
+  const nome=valt('en');if(!nome){toast('Informe o nome','error');return}
+  const btn=document.getElementById('save-emp-btn');
+  if(btn){btn.disabled=true;btn.textContent='Salvando...';}
+  const obj={nome,tipo:val('et'),cidade:valt('ec'),vlMin:+val('evm')||0,vlMax:+val('evx')||0,descricao:valt('ed')};
+  if(editId){
+    const i=DB.empreendimentos.findIndex(x=>x.id===editId);
+    DB.empreendimentos[i]={...DB.empreendimentos[i],...obj};
+    try{await sbUpsert('empreendimentos',DB.empreendimentos[i]);setSyncStatus('ok');toast('Produto atualizado!');}
+    catch(e){saveLocal();setSyncStatus('error');toast('Salvo localmente','warn');}
+  } else {
+    const novo={id:uid(),...obj};
+    DB.empreendimentos.push(novo);
+    try{await sbUpsert('empreendimentos',novo);setSyncStatus('ok');toast('Produto salvo na nuvem! ☁️');}
+    catch(e){saveLocal();setSyncStatus('error');toast('Salvo localmente','warn');}
+  }
+  closeModal();renderAll();
+}
+function editEmp(id){openEmpForm(id)}
+async function delEmp(id,fromModal=false){
+  if(!confirm('Excluir este produto?'))return;
+  DB.empreendimentos=DB.empreendimentos.filter(x=>x.id!==id);
+  try{await sbDelete('empreendimentos',id);setSyncStatus('ok');}
+  catch(e){saveLocal();setSyncStatus('error');}
+  if(fromModal)closeModal();closeEmpDetail();renderAll();toast('Produto excluído');
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function openModal(title,html){document.getElementById('modal-title-text').textContent=title;document.getElementById('modal-body').innerHTML=html;document.getElementById('overlay').classList.add('open')}
+function closeModal(){document.getElementById('overlay').classList.remove('open');editId=null}
+function handleOC(e){if(e.target===document.getElementById('overlay'))closeModal()}
+function openAddModal(){if(curTab==='empreend')openEmpForm();else openLeadForm()}
+
+function renderAll(){renderDashboard();renderLeads();renderEmpreendimentos();renderFollowup();renderMsgs()}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+const _dateStr=new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
+['today-date','sidebar-date','desktop-date'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=_dateStr;});
+
+function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-error');
+  if(u==='admin'&&p==='admin123'){
+    sessionStorage.setItem('crm_auth','1');
+    document.getElementById('login-screen').style.display='none';
+    startApp();
+  } else {
+    err.classList.add('show');
+    document.getElementById('login-pass').value='';
+    setTimeout(()=>err.classList.remove('show'),3000);
+  }
+}
+
+async function startApp(){
+  document.getElementById('loading-screen').style.display='flex';
+  await loadFromCloud();
+  renderAll();
+  document.getElementById('loading-screen').style.display='none';
+  document.getElementById('main-app').style.display='flex';
+}
+
+(()=>{
+  if(sessionStorage.getItem('crm_auth')==='1'){
+    document.getElementById('login-screen').style.display='none';
+    startApp();
+  }
+})();
+</script>
+</body>
+</html>
